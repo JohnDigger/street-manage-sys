@@ -1,138 +1,113 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList()">
-      <el-form-item>
-        <el-input v-model="dataForm.key" placeholder="参数名" clearable></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('jdbmanage:income:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('jdbmanage:income:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
-      </el-form-item>
-    </el-form>
     <el-table
       :data="dataList"
-      border
-      v-loading="dataListLoading"
-      @selection-change="selectionChangeHandle"
-      style="width: 100%;">
+      v-loading="loading"
+      border stripe
+      :header-cell-style="{'text-align':'center'}"
+      :cell-style="{'text-align':'center'}"
+      style="width: 100%">
       <el-table-column
-        type="selection"
-        header-align="center"
-        align="center"
-        width="50">
+        prop="date"
+        label="序号"
+        min-width="1%">
       </el-table-column>
       <el-table-column
-        prop="id"
-        header-align="center"
-        align="center"
-        label="家庭主键ID">
+        prop="incomeGroups"
+        label="人均收入档位"
+        min-width="4%">
       </el-table-column>
       <el-table-column
-        prop="street"
-        header-align="center"
-        align="center"
-        label="街道名称，如：1炳草岗街道,2瓜子坪街道">
+        prop="totalPopulation"
+        label="总人数(常住)"
+        min-width="1%">
+      </el-table-column>
+      <el-table-column label="家庭人口情况(户)" min-width="10%">
+        <el-table-column
+          prop="totalFamilys"
+          label="总户数"
+          width="110">
+        </el-table-column>
+        <el-table-column
+          prop="family.familyCountEntityList"
+          label="1口之家"
+          width="115">
+          <template scope="scope">
+              <div v-for="a in scope.row.familyCountEntityList">
+                <span v-if="a.familySize === '1口之家'">{{a.familysCount}}</span>
+              </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="family.familyCountEntityList"
+          label="2口之家"
+          width="115">
+          <template scope="scope">
+              <div v-for="a in scope.row.familyCountEntityList">
+                <span v-if="a.familySize === '2口之家'">{{a.familysCount}}</span>
+              </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="3口之家"
+          prop="family.familyCountEntityList"
+          width="115">
+          <template scope="scope">
+              <div v-for="a in scope.row.familyCountEntityList">
+                <span v-if="a.familySize === '3口之家'">{{a.familysCount}}</span>
+              </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="family.familyCountEntityList"
+          label="4口之家"
+          width="115">
+          <template scope="scope">
+              <div v-for="a in scope.row.familyCountEntityList">
+                <span v-if="a.familySize === '4口之家'">{{a.familysCount}}</span>
+              </div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="family.familyCountEntityList"
+          label="5口之家及以上"
+          width="115">
+          <template scope="scope">
+              <div v-for="a in scope.row.familyCountEntityList">
+                <span v-if="a.familySize === '5口之家及以上'">{{a.familysCount}}</span>
+              </div>
+          </template>
+        </el-table-column>
+
       </el-table-column>
       <el-table-column
-        prop="isPermanent"
-        header-align="center"
-        align="center"
-        label="是否常驻人口：0流动人口，1常驻人口">
+        prop="totalIncome"
+        label="总收入(万元)"
+        min-width="1%">
       </el-table-column>
       <el-table-column
-        prop="address"
-        header-align="center"
-        align="center"
-        label="家庭地址">
+        prop="name"
+        label="人均收入(万元)"
+        min-width="1%">
       </el-table-column>
       <el-table-column
-        prop="familyNum"
-        header-align="center"
-        align="center"
-        label="家庭总人口数">
-      </el-table-column>
-      <el-table-column
-        prop="familyIncome"
-        header-align="center"
-        align="center"
-        label="家庭年收入（万元）">
-      </el-table-column>
-      <el-table-column
-        prop="averageIncome"
-        header-align="center"
-        align="center"
-        label="家庭人均收入（万元）">
-      </el-table-column>
-      <el-table-column
-        prop="incomeInterval"
-        header-align="center"
-        align="center"
-        label="人均收入区间：1万元以下（含）：1；1万元至3.3万元（不含）：2；3.3万元以上（含）：3">
-      </el-table-column>
-      <el-table-column
-        prop="remark"
-        header-align="center"
-        align="center"
-        label="备注">
-      </el-table-column>
-      <el-table-column
-        prop="officer"
-        header-align="center"
-        align="center"
-        label="社区调查员">
-      </el-table-column>
-      <el-table-column
-        prop="createTime"
-        header-align="center"
-        align="center"
-        label="调查时间">
-      </el-table-column>
-      <el-table-column
-        fixed="right"
-        header-align="center"
-        align="center"
-        width="150"
-        label="操作">
-        <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.id)">修改</el-button>
-          <el-button type="text" size="small" @click="deleteHandle(scope.row.id)">删除</el-button>
-        </template>
+        prop="name"
+        label="占比(%)人"
+        min-width="1%">
       </el-table-column>
     </el-table>
-    <el-pagination
-      @size-change="sizeChangeHandle"
-      @current-change="currentChangeHandle"
-      :current-page="pageIndex"
-      :page-sizes="[10, 20, 50, 100]"
-      :page-size="pageSize"
-      :total="totalPage"
-      layout="total, sizes, prev, pager, next, jumper">
-    </el-pagination>
-    <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getDataList"></add-or-update>
   </div>
 </template>
 
 <script>
-  import AddOrUpdate from './income-add-or-update'
   export default {
     data () {
       return {
-        dataForm: {
-          key: ''
-        },
         dataList: [],
-        pageIndex: 1,
-        pageSize: 10,
-        totalPage: 0,
         dataListLoading: false,
         dataListSelections: [],
-        addOrUpdateVisible: false
+        loading: true
       }
-    },
-    components: {
-      AddOrUpdate
     },
     activated () {
       this.getDataList()
@@ -142,74 +117,16 @@
       getDataList () {
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('/jdbmanage/income/list'),
-          method: 'get',
-          params: this.$http.adornParams({
-            'page': this.pageIndex,
-            'limit': this.pageSize,
-            'key': this.dataForm.key
-          })
+          url: this.$http.adornUrl('/jdbmanage/income/listArr'),
+          method: 'get'
         }).then(({data}) => {
           if (data && data.code === 0) {
-            this.dataList = data.page.list
-            this.totalPage = data.page.totalCount
+            this.dataList = data.list
           } else {
             this.dataList = []
-            this.totalPage = 0
           }
           this.dataListLoading = false
-        })
-      },
-      // 每页数
-      sizeChangeHandle (val) {
-        this.pageSize = val
-        this.pageIndex = 1
-        this.getDataList()
-      },
-      // 当前页
-      currentChangeHandle (val) {
-        this.pageIndex = val
-        this.getDataList()
-      },
-      // 多选
-      selectionChangeHandle (val) {
-        this.dataListSelections = val
-      },
-      // 新增 / 修改
-      addOrUpdateHandle (id) {
-        this.addOrUpdateVisible = true
-        this.$nextTick(() => {
-          this.$refs.addOrUpdate.init(id)
-        })
-      },
-      // 删除
-      deleteHandle (id) {
-        var ids = id ? [id] : this.dataListSelections.map(item => {
-          return item.id
-        })
-        this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?`, '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.$http({
-            url: this.$http.adornUrl('/jdbmanage/income/delete'),
-            method: 'post',
-            data: this.$http.adornData(ids, false)
-          }).then(({data}) => {
-            if (data && data.code === 0) {
-              this.$message({
-                message: '操作成功',
-                type: 'success',
-                duration: 1500,
-                onClose: () => {
-                  this.getDataList()
-                }
-              })
-            } else {
-              this.$message.error(data.msg)
-            }
-          })
+          this.loading = false
         })
       }
     }

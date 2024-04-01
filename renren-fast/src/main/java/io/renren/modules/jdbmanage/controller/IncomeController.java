@@ -1,8 +1,9 @@
 package io.renren.modules.jdbmanage.controller;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
-
+import io.renren.modules.sys.controller.AbstractController;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +28,7 @@ import io.renren.common.utils.R;
  */
 @RestController
 @RequestMapping("jdbmanage/income")
-public class IncomeController {
+public class IncomeController extends AbstractController {
     @Autowired
     private IncomeService incomeService;
 
@@ -85,6 +86,12 @@ public class IncomeController {
 		incomeService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
+    }
+
+    @RequestMapping("/listArr")
+    public R listArr(){
+        Long UserId = getUser().getUserId();
+        return R.ok().put("list", incomeService.listAllData(UserId));
     }
 
 }

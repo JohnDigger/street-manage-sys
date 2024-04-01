@@ -17,6 +17,90 @@
         <result property="officer" column="officer"/>
         <result property="createTime" column="create_time"/>
     </resultMap>
+    <resultMap id="FamilyCountEntity" type="io.renren.modules.jdbmanage.entity.FamilyCountEntity">
+        <id property="familySize" column="family_size" />
+        <result property="FamilysCount" column="familys_count" />
+    </resultMap>
+
+    <resultMap id="familyIncomeResultMap" type="io.renren.modules.jdbmanage.entity.IncomeStaticsEntity">
+        <result property="averageIncome" column="average_income" />
+        <result property="totalPopulation" column="total_population" />
+        <result property="totalFamilys" column="total_familys"/>
+        <result property="totalIncome" column="total_income"/>
+    </resultMap>
+<!--    超级管理员查询-->
+    <select id="listFamilys" parameterType="float" resultMap="FamilyCountEntity">
+        SELECT
+        CASE
+        WHEN family_income.family_num = 1 THEN '1口之家'
+        WHEN family_income.family_num = 2 THEN '2口之家'
+        WHEN family_income.family_num = 3 THEN '3口之家'
+        WHEN family_income.family_num = 4 THEN '4口之家'
+        ELSE '5口之家及以上'
+        END AS family_size,
+        COUNT(*) AS familysCount
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end}
+        GROUP BY family_size;
+    </select>
+
+    <select id="countPopulation" parameterType="float" resultType="integer">
+        SELECT
+        SUM(family_income.family_num) AS total_population
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND is_permanent = 1;
+    </select>
+
+    <select id="countAllFamilys" parameterType="float" resultType="integer">
+        SELECT
+            COUNT(family_income.family_num) AS total_familys
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end};
+    </select>
+
+    <select id="countIncome" parameterType="float" resultType="double">
+        SELECT
+        SUM(family_income) AS total_income
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end};
+    </select>
+
+<!--    下面的都是街道办下辖各个社区的查询-->
+    <select id="listFamilysByRole" resultMap="FamilyCountEntity">
+        SELECT
+            CASE
+                WHEN family_income.family_num = 1 THEN '1口之家'
+                WHEN family_income.family_num = 2 THEN '2口之家'
+                WHEN family_income.family_num = 3 THEN '3口之家'
+                WHEN family_income.family_num = 4 THEN '4口之家'
+                ELSE '5口之家及以上'
+                END AS family_size,
+            COUNT(*) AS familysCount
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street}
+        GROUP BY family_size;
+    </select>
+
+    <select id="countPopulationByRole" resultType="integer">
+        SELECT
+            SUM(family_income.family_num) AS total_population
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND is_permanent = 1;
+    </select>
+
+    <select id="countAllFamilysByRole" resultType="integer">
+        SELECT
+            COUNT(family_income.family_num) AS total_familys
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
+    </select>
+
+    <select id="countIncomeByRole" resultType="double">
+        SELECT
+            SUM(family_income) AS total_income
+        FROM family_income
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
+    </select>
 
 
 </mapper>
