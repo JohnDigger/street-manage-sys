@@ -8,3 +8,12 @@
   export default {
   }
 </script>
+
+<style scoped>
+.el-table th{
+  text-align: center !important;
+}
+.cell{
+  text-align: center !important;
+}
+</style>

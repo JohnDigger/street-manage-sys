@@ -64,5 +64,9 @@ public class IncomeEntity implements Serializable {
 	 * 调查时间
 	 */
 	private Date createTime;
+	/**
+	 * 户主
+	 */
+	private String houseHolder;
 
 }

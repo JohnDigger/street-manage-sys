@@ -16,6 +16,7 @@
         <result property="remark" column="remark"/>
         <result property="officer" column="officer"/>
         <result property="createTime" column="create_time"/>
+        <result property="houseHolder" column="householder"/>
     </resultMap>
     <resultMap id="FamilyCountEntity" type="io.renren.modules.jdbmanage.entity.FamilyCountEntity">
         <id property="familySize" column="family_size" />
@@ -48,7 +49,7 @@
         SELECT
         SUM(family_income.family_num) AS total_population
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND is_permanent = 1;
+        WHERE family_income > #{start} AND family_income &lt;= #{end};
     </select>
 
     <select id="countAllFamilys" parameterType="float" resultType="integer">
@@ -85,7 +86,7 @@
         SELECT
             SUM(family_income.family_num) AS total_population
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND is_permanent = 1;
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
     </select>
 
     <select id="countAllFamilysByRole" resultType="integer">

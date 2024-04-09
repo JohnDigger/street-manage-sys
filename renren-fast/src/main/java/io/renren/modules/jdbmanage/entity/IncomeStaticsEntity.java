@@ -28,4 +28,6 @@ public class IncomeStaticsEntity {
     private Double incomePercentage;
     //家庭户数明细
     List<FamilyCountEntity> familyCountEntityList;
+    //子收入群体
+    private String subIncomeGroups;
 }
