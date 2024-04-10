@@ -74,7 +74,7 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="family.familyCountEntityList"
+          prop="familyCountEntityList"
           label="5口之家及以上"
           width="115">
           <template slot-scope="scope">
@@ -126,23 +126,29 @@
             sums[index] = '合计'
             return
           }
-          const values = data.map(item => Number(item[column.property]))
+          const values = data.map((item) => {
+            if (column.property === 'familyCountEntityList'){
+               item[column.property].map(e=>{
+                 // console.log(e.familysCount)
+               })
+            }
+            Number(item[column.property])
+          })
+        console.log(values)
           if (!values.every(value => isNaN(value))) {
             sums[index] = values.reduce((prev, curr) => {
               const value = Number(curr)
-              if (!isNaN(value) || index === 4) {
-                return prev + curr
+              if (!isNaN(value)) {
+                return Math.floor((prev + curr) * 100) / 100
               } else {
                 return prev
               }
             }, 0)
-            console.log(sums[index])
             sums[index] += ''
           } else {
             sums[index] = 'N/A'
           }
         })
-      console.log(sums)
         return sums
       },
 
