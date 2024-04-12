@@ -99,7 +99,12 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleDao, SysRoleEntity> i
     }
 
 
-    @Override
+	@Override
+	public String queryRoleName(Long UserId) {
+		return baseMapper.selectById(UserId).getRoleName();
+	}
+
+	@Override
 	public List<Long> queryRoleIdList(Long createUserId) {
 		return baseMapper.queryRoleIdList(createUserId);
 	}
