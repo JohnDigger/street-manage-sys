@@ -89,9 +89,16 @@ public class IncomeController extends AbstractController {
     }
 
     @RequestMapping("/listArr")
+    @RequiresPermissions("jdbmanage:income:list")
     public R listArr(){
         Long UserId = getUser().getUserId();
         return R.ok().put("list", incomeService.listAllData(UserId));
+    }
+
+    @RequestMapping("/getDistrict")
+    @RequiresPermissions("jdbmanage:income:list")
+    public R getDistrict(){
+        return R.ok().put("list",incomeService.getDistrict(getUser().getUserId()));
     }
 
 }

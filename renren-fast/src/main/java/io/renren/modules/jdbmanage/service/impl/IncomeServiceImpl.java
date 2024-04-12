@@ -1,6 +1,7 @@
 package io.renren.modules.jdbmanage.service.impl;
 
 import io.renren.modules.jdbmanage.entity.IncomeStaticsEntity;
+import io.renren.modules.sys.service.SysRoleService;
 import io.renren.modules.sys.service.SysUserRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import io.renren.modules.jdbmanage.dao.IncomeDao;
 import io.renren.modules.jdbmanage.entity.IncomeEntity;
 import io.renren.modules.jdbmanage.service.IncomeService;
 
+import static java.sql.Types.NULL;
+
 
 @Service("incomeService")
 public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> implements IncomeService {
@@ -26,6 +29,9 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
 
     @Autowired
     private SysUserRoleService sysUserRoleService;
+
+    @Autowired
+    private SysRoleService sysRoleService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -190,7 +196,38 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
             incomeStaticsEntities.add(incomeStaticsEntity);
         }
 
+        double SUM_POPULATION = 0;
+        for (IncomeStaticsEntity incomeStaticsEntity : incomeStaticsEntities) {
+            if (incomeStaticsEntity.getTotalPopulation() != null){
+                SUM_POPULATION += incomeStaticsEntity.getTotalPopulation();
+            }
+
+        }
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+        for (int i = 0; i <incomeStaticsEntities.size() ; i++) {
+            double INCOME_PERCENT;
+            if (incomeStaticsEntities.get(i).getTotalPopulation() == null){
+                incomeStaticsEntities.get(i).setIncomePercentage(0.0);
+            }else{
+
+                INCOME_PERCENT = (incomeStaticsEntities.get(i).getTotalPopulation()/SUM_POPULATION)*100;
+                String result = df.format(INCOME_PERCENT);
+                incomeStaticsEntities.get(i).setIncomePercentage(Double.valueOf(result));
+            }
+
+        }
 
         return incomeStaticsEntities;
+    }
+
+    @Override
+    public String getDistrict(Long UserId) {
+        List<Long> roleIdList = sysUserRoleService.queryRoleIdList(UserId);
+        if (roleIdList.isEmpty()){
+            return " ";
+        }else{
+            return sysRoleService.queryRoleName(roleIdList.get(0));
+        }
     }
 }

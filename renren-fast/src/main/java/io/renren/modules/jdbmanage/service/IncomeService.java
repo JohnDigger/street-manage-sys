@@ -25,5 +25,7 @@ public interface IncomeService extends IService<IncomeEntity> {
     IncomeStaticsEntity IncomeInfoByRole(float start, float end ,Integer street);
 
     List<IncomeStaticsEntity> listAllData(Long userId);
+
+    String getDistrict(Long UserId);
 }
 
