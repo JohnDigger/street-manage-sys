@@ -1,7 +1,6 @@
 package io.renren.modules.jdbmanage.controller;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import io.renren.modules.sys.controller.AbstractController;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -90,9 +89,9 @@ public class IncomeController extends AbstractController {
 
     @RequestMapping("/listArr")
     @RequiresPermissions("jdbmanage:income:list")
-    public R listArr(){
+    public R listArr(@RequestParam("startDate")String startDate,@RequestParam("endDate")String endDate){
         Long UserId = getUser().getUserId();
-        return R.ok().put("list", incomeService.listAllData(UserId));
+        return R.ok().put("list", incomeService.listAllData(UserId,startDate,endDate));
     }
 
     @RequestMapping("/getDistrict")

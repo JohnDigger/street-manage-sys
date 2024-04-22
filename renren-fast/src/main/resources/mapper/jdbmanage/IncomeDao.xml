@@ -30,7 +30,7 @@
         <result property="totalIncome" column="total_income"/>
     </resultMap>
 <!--    超级管理员查询-->
-    <select id="listFamilys" parameterType="float" resultMap="FamilyCountEntity">
+    <select id="listFamilys" resultMap="FamilyCountEntity">
         SELECT
         CASE
         WHEN family_income.family_num = 1 THEN '1口之家'
@@ -41,29 +41,29 @@
         END AS family_size,
         COUNT(*) AS familysCount
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end}
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND create_time BETWEEN #{startDate} AND #{endDate}
         GROUP BY family_size;
     </select>
 
-    <select id="countPopulation" parameterType="float" resultType="integer">
+    <select id="countPopulation"  resultType="integer">
         SELECT
         SUM(family_income.family_num) AS total_population
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
-    <select id="countAllFamilys" parameterType="float" resultType="integer">
+    <select id="countAllFamilys"  resultType="integer">
         SELECT
             COUNT(family_income.family_num) AS total_familys
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
-    <select id="countIncome" parameterType="float" resultType="double">
+    <select id="countIncome"  resultType="double">
         SELECT
         SUM(family_income) AS total_income
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
 <!--    下面的都是街道办下辖各个社区的查询-->
@@ -78,7 +78,7 @@
                 END AS family_size,
             COUNT(*) AS familysCount
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street}
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND create_time BETWEEN #{startDate} AND #{endDate}
         GROUP BY family_size;
     </select>
 
@@ -86,21 +86,21 @@
         SELECT
             SUM(family_income.family_num) AS total_population
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
     <select id="countAllFamilysByRole" resultType="integer">
         SELECT
             COUNT(family_income.family_num) AS total_familys
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
     <select id="countIncomeByRole" resultType="double">
         SELECT
             SUM(family_income) AS total_income
         FROM family_income
-        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street};
+        WHERE family_income > #{start} AND family_income &lt;= #{end} AND street = #{street} AND create_time BETWEEN #{startDate} AND #{endDate};
     </select>
 
 

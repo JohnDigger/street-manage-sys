@@ -18,16 +18,19 @@ import java.util.List;
 @Mapper
 public interface IncomeDao extends BaseMapper<IncomeEntity> {
     //按照标准划分每类家庭
-    List<FamilyCountEntity> listFamilys(float start, float end);
+    List<FamilyCountEntity> listFamilys(@Param("start") float start,@Param("end") float end,@Param("startDate")String startDate,@Param("endDate") String endDate);
     //总人口统计,常住人口
-    Integer countPopulation(float start, float end);
+    Integer countPopulation(@Param("start") float start,@Param("end") float end,@Param("startDate")String startDate,@Param("endDate") String endDate);
     //总户数
-    Integer countAllFamilys(float start, float end);
+    Integer countAllFamilys(@Param("start") float start,@Param("end") float end,@Param("startDate")String startDate,@Param("endDate") String endDate);
     //总收入
-    Double countIncome(float start,float end);
+    Double countIncome(@Param("start") float start,@Param("end") float end,@Param("startDate")String startDate,@Param("endDate") String endDate);
     //为社区提供的查询接口
-    List<FamilyCountEntity> listFamilysByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street);
-    Integer countPopulationByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street);
-    Integer countAllFamilysByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street);
-    Double countIncomeByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street);
+    List<FamilyCountEntity> listFamilysByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street,@Param("startDate")String startDate,@Param("endDate") String endDate);
+
+    Integer countPopulationByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street,@Param("startDate")String startDate,@Param("endDate") String endDate);
+
+    Integer countAllFamilysByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street,@Param("startDate")String startDate,@Param("endDate") String endDate);
+
+    Double countIncomeByRole(@Param("start") float start,@Param("end") float end,@Param("street") Integer street,@Param("startDate")String startDate,@Param("endDate") String endDate);
 }

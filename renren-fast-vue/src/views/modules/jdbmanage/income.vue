@@ -1,6 +1,18 @@
 <template>
   <div class="mod-config">
-    <el-button type="primary" @click="exportExcel()" class="exportBtn">导出为excel表格</el-button>
+    <div class="block">
+      <el-button type="primary" @click="exportExcel()" class="exportBtn">导出为excel表格</el-button>
+      <el-date-picker
+        v-model="pickedDate"
+        type="daterange"
+        value-format="yyyy-MM-dd"
+        :picker-options="pickerOptions"
+        range-separator="至"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期">
+      </el-date-picker>
+      <el-button type="success" @click="queryByDate()">查询</el-button>
+    </div>
     <el-table
       id="educe-table"
       :data="dataList"
@@ -117,29 +129,72 @@ export default {
       dataListLoading: false,
       dataListSelections: [],
       loading: true,
-      chartName: ''
+      chartName: '',
+      pickedDate: '',
+      pickerOptions: {
+        shortcuts: [
+          {
+            text: '最近一周',
+            onClick (picker) {
+              const end = new Date()
+              const start = new Date()
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+              picker.$emit('pick', [start, end])
+            }
+          },
+          {
+            text: '最近一个月',
+            onClick (picker) {
+              const end = new Date()
+              const start = new Date()
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+              picker.$emit('pick', [start, end])
+            }
+          },
+          {
+            text: '最近三个月',
+            onClick (picker) {
+              const end = new Date()
+              const start = new Date()
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+              picker.$emit('pick', [start, end])
+            }
+          }
+        ]
+      }
     }
   },
   activated () {
     this.getDataList()
   },
+  created () {
+    this.getInitializeDate()
+  },
   methods: {
-    getDistrict(){
+    getInitializeDate () {
+      let date = new Date()
+      let year = date.getFullYear().toString()
+      let month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1).toString() : (date.getMonth() + 1).toString()
+      let day = date.getDate() < 10 ? '0' + date.getDate().toString() : date.getDate().toString()
+      let start = year + '-01' + '-01'
+      let end = year + '-' + month + '-' + day
+      this.pickedDate = [start, end]
+    },
+    getDistrict () {
       this.$http({
         url: this.$http.adornUrl('/jdbmanage/income/getDistrict'),
         method: 'get'
       }).then(({data}) => {
         if (data && data.code === 0) {
           this.chartName = data.list
-          console.log(this.chartName)
         } else {
-          this.chartName =  ''
+          this.chartName = ''
         }
       })
     },
-    exportExcel() {
-      let wb = XLSX.utils.table_to_book(document.querySelector('#educe-table'));
-      let newSheetName = '附件3 居民收入摸底排查汇总表';
+    exportExcel () {
+      let wb = XLSX.utils.table_to_book(document.querySelector('#educe-table'))
+      let newSheetName = '附件3 居民收入摸底排查汇总表'
       wb.Sheets.Sheet1.E2 = {t: 's', v: '总户数'}
       wb.Sheets.Sheet1.F2 = {t: 's', v: '1口之家'}
       wb.Sheets.Sheet1.G2 = {t: 's', v: '2口之家'}
@@ -158,80 +213,80 @@ export default {
         {s: {r: 18, c: 7}, e: {r: 19, c: 7}},
         {s: {r: 18, c: 8}, e: {r: 19, c: 8}},
         {s: {r: 18, c: 9}, e: {r: 19, c: 9}}
-      );
+      )
       // 更改默认Sheet名并更新引用
       if (wb.SheetNames.length > 0) {
-        let originalSheet = wb.Sheets[wb.SheetNames[0]];
-        delete wb.Sheets[wb.SheetNames[0]]; // 删除旧名称的引用
-        wb.SheetNames[0] = newSheetName; // 更新Sheet名
-        wb.Sheets[newSheetName] = originalSheet; // 更新Sheet引用
+        let originalSheet = wb.Sheets[wb.SheetNames[0]]
+        delete wb.Sheets[wb.SheetNames[0]] // 删除旧名称的引用
+        wb.SheetNames[0] = newSheetName // 更新Sheet名
+        wb.Sheets[newSheetName] = originalSheet // 更新Sheet引用
       } else {
-        console.error('No sheets found in the workbook');
-        return;
+        console.error('No sheets found in the workbook')
+        return
       }
 
-      let sheet = wb.Sheets[newSheetName];
-      let updatedSheet = {};
-      let maxRow = 0;
-      let cellRegex = /([A-Z]+)(\d+)/;
+      let sheet = wb.Sheets[newSheetName]
+      let updatedSheet = {}
+      let maxRow = 0
+      let cellRegex = /([A-Z]+)(\d+)/
 
       // 遍历并移动单元格
       Object.keys(sheet).forEach(key => {
         if (key[0] === '!') { // 忽略特殊键，直接复制
-          updatedSheet[key] = sheet[key];
+          updatedSheet[key] = sheet[key]
         } else {
-          const match = key.match(cellRegex);
+          const match = key.match(cellRegex)
           if (match) {
-            const col = match[1];
-            const originalRow = parseInt(match[2], 10);
-            const newRow = originalRow + 2; // 下移两行
-            maxRow = Math.max(maxRow, newRow); // 更新最大行号
-            const newKey = `${col}${newRow}`;
-            updatedSheet[newKey] = sheet[key];
+            const col = match[1]
+            const originalRow = parseInt(match[2], 10)
+            const newRow = originalRow + 2 // 下移两行
+            maxRow = Math.max(maxRow, newRow) // 更新最大行号
+            const newKey = `${col}${newRow}`
+            updatedSheet[newKey] = sheet[key]
           }
         }
-      });
+      })
 
       // 确保!merges数组存在
-      if (!updatedSheet['!merges']) updatedSheet['!merges'] = [];
+      if (!updatedSheet['!merges']) updatedSheet['!merges'] = []
 
       // 更新合并单元格的位置
       if (updatedSheet['!merges']) {
         updatedSheet['!merges'].forEach(merge => {
-          merge.s.r += 2; // 起始行下移两行
-          merge.e.r += 2; // 结束行下移两行
-        });
+          merge.s.r += 2 // 起始行下移两行
+          merge.e.r += 2 // 结束行下移两行
+        })
       }
 
       // 添加合并A3到M4的操作
       updatedSheet['!merges'].push({
         s: {r: 0, c: 0}, // A3
         e: {r: 1, c: 12} // M4
-      });
+      })
 
      // 更新!ref属性以反映新的数据范围
-      const ref = sheet['!ref'];
+      const ref = sheet['!ref']
       if (ref) {
-        const refParts = ref.split(':');
-        const startRef = refParts[0].match(/([A-Z]+)(\d+)/);
-        const endRef = refParts[1].match(/([A-Z]+)(\d+)/);
-        const newStartRef = `${startRef[1]}${parseInt(startRef[2], 10) + 2}`;
-        const newEndRef = `${endRef[1]}${maxRow}`;
-        updatedSheet['!ref'] = `${newStartRef}:${newEndRef}`;
+        const refParts = ref.split(':')
+        const startRef = refParts[0].match(/([A-Z]+)(\d+)/)
+        const endRef = refParts[1].match(/([A-Z]+)(\d+)/)
+        const newStartRef = `${startRef[1]}${parseInt(startRef[2], 10) + 2}`
+        const newEndRef = `${endRef[1]}${maxRow}`
+        updatedSheet['!ref'] = `${newStartRef}:${newEndRef}`
       }
 
-      wb.Sheets[newSheetName] = updatedSheet;
+      wb.Sheets[newSheetName] = updatedSheet
       wb.Sheets[newSheetName]['!ref'] = 'A1:P21'
       this.getDistrict()
       console.log(this.chartName)
-      wb.Sheets['附件3 居民收入摸底排查汇总表'].A1 = {t: 's', v: '炳草岗街道'+ this.chartName +'社区居民收入摸底排查汇总表'}
+      wb.Sheets['附件3 居民收入摸底排查汇总表'].A1 = {t: 's', v: '炳草岗街道' + this.chartName + '社区居民收入摸底排查汇总表'}
       let wbout = XLSX.write(wb, {
         bookType: 'xlsx',
         bookSST: false,
         type: 'array'
-      });
-      FileSaver.saveAs(new Blob([wbout], {type: 'application/octet-stream'}), '附件3.xlsx');
-      return wbout;
+      })
+      FileSaver.saveAs(new Blob([wbout], {type: 'application/octet-stream'}), '附件3.xlsx')
+      return wbout
     },
     getSummaries (param) {
       const {columns, data} = param
@@ -301,11 +356,33 @@ export default {
         return {display: 'none'}
       }
     },
+    queryByDate () {
+      this.loading = true
+      this.$http({
+        url: this.$http.adornUrl('/jdbmanage/income/listArr?startDate=' + this.pickedDate[0] + '&endDate=' + this.pickedDate[1]),
+        method: 'get'
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.dataList = data.list
+        } else {
+          this.dataList = []
+        }
+        this.dataListLoading = false
+        this.loading = false
+      })
+    },
     // 获取数据列表
     getDataList () {
+      let date = new Date()
+      let year = date.getFullYear().toString()
+      let month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1).toString() : (date.getMonth() + 1).toString()
+      let day = date.getDate() < 10 ? '0' + date.getDate().toString() : date.getDate().toString()
+      let start = year + '-01' + '-01'
+      let end = year + '-' + month + '-' + day
+      this.pickedDate = [start, end]
       this.dataListLoading = true
       this.$http({
-        url: this.$http.adornUrl('/jdbmanage/income/listArr'),
+        url: this.$http.adornUrl('/jdbmanage/income/listArr?startDate=' + this.pickedDate[0] + '&endDate=' + this.pickedDate[1]),
         method: 'get'
       }).then(({data}) => {
         if (data && data.code === 0) {
@@ -360,5 +437,11 @@ export default {
 }
 .exportBtn{
   margin-bottom: 10px;
+}
+.block{
+  float: left;
+}
+/deep/ .el-date-editor .el-range-separator{
+  width: 15%!important;
 }
 </style>

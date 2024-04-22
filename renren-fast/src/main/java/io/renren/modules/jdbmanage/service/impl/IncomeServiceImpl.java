@@ -19,8 +19,6 @@ import io.renren.modules.jdbmanage.dao.IncomeDao;
 import io.renren.modules.jdbmanage.entity.IncomeEntity;
 import io.renren.modules.jdbmanage.service.IncomeService;
 
-import static java.sql.Types.NULL;
-
 
 @Service("incomeService")
 public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> implements IncomeService {
@@ -44,14 +42,14 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
     }
 
     @Override
-    public IncomeStaticsEntity IncomeInfo(float start, float end) {
-        Integer population = incomeDao.countPopulation(start,end);
-        Double income = incomeDao.countIncome(start,end);
+    public IncomeStaticsEntity IncomeInfo(float start, float end,String startDate,String endDate) {
+        Integer population = incomeDao.countPopulation(start,end,startDate,endDate);
+        Double income = incomeDao.countIncome(start,end,startDate,endDate);
         DecimalFormat df = new DecimalFormat();
         IncomeStaticsEntity staticsEntity = new IncomeStaticsEntity();
         staticsEntity.setTotalPopulation(population);
-        staticsEntity.setFamilyCountEntityList(incomeDao.listFamilys(start, end));
-        staticsEntity.setTotalFamilys(incomeDao.countAllFamilys(start, end));
+        staticsEntity.setFamilyCountEntityList(incomeDao.listFamilys(start, end,startDate,endDate));
+        staticsEntity.setTotalFamilys(incomeDao.countAllFamilys(start, end,startDate,endDate));
         staticsEntity.setTotalIncome(income);
         if (income == null|| population == null){
             staticsEntity.setAverageIncome(0.0);
@@ -64,14 +62,14 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
     }
 
     @Override
-    public IncomeStaticsEntity IncomeInfoByRole(float start, float end, Integer street) {
-        Integer population = incomeDao.countPopulationByRole(start, end, street);
-        Double income = incomeDao.countIncomeByRole(start, end, street);
+    public IncomeStaticsEntity IncomeInfoByRole(float start, float end, Integer street,String startDate,String endDate) {
+        Integer population = incomeDao.countPopulationByRole(start, end, street,startDate,endDate);
+        Double income = incomeDao.countIncomeByRole(start, end, street,startDate,endDate);
         DecimalFormat df = new DecimalFormat();
         IncomeStaticsEntity staticsEntity = new IncomeStaticsEntity();
         staticsEntity.setTotalPopulation(population);
-        staticsEntity.setFamilyCountEntityList(incomeDao.listFamilysByRole(start, end, street));
-        staticsEntity.setTotalFamilys(incomeDao.countAllFamilysByRole(start, end, street));
+        staticsEntity.setFamilyCountEntityList(incomeDao.listFamilysByRole(start, end, street,startDate,endDate));
+        staticsEntity.setTotalFamilys(incomeDao.countAllFamilysByRole(start, end, street,startDate,endDate));
         staticsEntity.setTotalIncome(income);
         if (income == null|| population == null){
             staticsEntity.setAverageIncome(0.0);
@@ -84,14 +82,14 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
     }
 
     @Override
-    public List<IncomeStaticsEntity> listAllData(Long userId) {
+    public List<IncomeStaticsEntity> listAllData(Long userId, String startDate, String endDate) {
         List<IncomeStaticsEntity> incomeStaticsEntities = new ArrayList<>();
         List<Long> roleIdList = sysUserRoleService.queryRoleIdList(userId);
 
         for (float step = 0; step < 3; step += 1.00) {
             IncomeStaticsEntity incomeStaticsEntity = roleIdList.size() != 0
-                    ? IncomeInfoByRole(step, step + 1, Math.toIntExact(roleIdList.get(0)))
-                    : IncomeInfo(step, step + 1);
+                    ? IncomeInfoByRole(step, step + 1, Math.toIntExact(roleIdList.get(0)),startDate,endDate)
+                    : IncomeInfo(step, step + 1,startDate,endDate);
 
             incomeStaticsEntity.setIncomeGroups(step == 0 ? "1万元及以下" : (int) step + "万元（不含）——" + (int) (step + 1) + "万元");
 
@@ -99,26 +97,26 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
         }
 
         if (roleIdList.size() != 0) {
-            IncomeStaticsEntity incomeStaticsEntitySubLow = IncomeInfoByRole(3, 3.33f, Math.toIntExact(roleIdList.get(0)));
+            IncomeStaticsEntity incomeStaticsEntitySubLow = IncomeInfoByRole(3, 3.33f, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntitySubLow.setIncomeGroups("3万元（不含）-—4万元");
             incomeStaticsEntitySubLow.setSubIncomeGroups("其中\n" +
                     "3.33万元以下");
             incomeStaticsEntities.add(incomeStaticsEntitySubLow);
 
-            IncomeStaticsEntity incomeStaticsEntitySubHigh = IncomeInfoByRole(3.33f, 4f, Math.toIntExact(roleIdList.get(0)));
+            IncomeStaticsEntity incomeStaticsEntitySubHigh = IncomeInfoByRole(3.33f, 4f, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntitySubHigh.setIncomeGroups("3万元（不含）-—4万元");
             incomeStaticsEntitySubHigh.setSubIncomeGroups("其中\n" +
                     "3.33万元以上");
             incomeStaticsEntities.add(incomeStaticsEntitySubHigh);
         } else {
-            IncomeStaticsEntity incomeStaticsEntitySubLow = IncomeInfo(3f, 3.33f);
+            IncomeStaticsEntity incomeStaticsEntitySubLow = IncomeInfo(3f, 3.33f,startDate,endDate);
             incomeStaticsEntitySubLow.setIncomeGroups("3万元（不含）-—4万元");
             incomeStaticsEntitySubLow.setSubIncomeGroups("其中\n" +
                     "3.33万元以下");
 
             incomeStaticsEntities.add(incomeStaticsEntitySubLow);
 
-            IncomeStaticsEntity incomeStaticsEntitySubHigh = IncomeInfo(3.33f, 4f);
+            IncomeStaticsEntity incomeStaticsEntitySubHigh = IncomeInfo(3.33f, 4f,startDate,endDate);
             incomeStaticsEntitySubHigh.setIncomeGroups("3万元（不含）-—4万元");
             incomeStaticsEntitySubHigh.setSubIncomeGroups("其中\n" +
                     "3.33万元以上");
@@ -127,8 +125,8 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
 
         for (float step = 4f; step < 10.00; step += 1.00) {
             IncomeStaticsEntity incomeStaticsEntity = roleIdList.size() != 0
-                    ? IncomeInfoByRole(step, step + 1, Math.toIntExact(roleIdList.get(0)))
-                    : IncomeInfo(step, step + 1);
+                    ? IncomeInfoByRole(step, step + 1, Math.toIntExact(roleIdList.get(0)),startDate,endDate)
+                    : IncomeInfo(step, step + 1,startDate,endDate);
 
             incomeStaticsEntity.setIncomeGroups((int) step + "万元（不含）——" + (int) (step + 1) + "万元");
 
@@ -138,14 +136,14 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
         IncomeStaticsEntity incomeStaticsEntitySubHigh;
         if (roleIdList.size() != 0) {
 
-            incomeStaticsEntitySubLow = IncomeInfoByRole(10, (float) 16.66, Math.toIntExact(roleIdList.get(0)));
+            incomeStaticsEntitySubLow = IncomeInfoByRole(10, (float) 16.66, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntitySubLow.setIncomeGroups("10万元（不含）—20万元");
             incomeStaticsEntitySubLow.setSubIncomeGroups("其中16.66万元以下");
 
 
             incomeStaticsEntities.add(incomeStaticsEntitySubLow);
 
-            incomeStaticsEntitySubHigh = IncomeInfoByRole((float) 16.66, 20, Math.toIntExact(roleIdList.get(0)));
+            incomeStaticsEntitySubHigh = IncomeInfoByRole((float) 16.66, 20, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntitySubHigh.setIncomeGroups("10万元（不含）—20万元");
             incomeStaticsEntitySubHigh.setSubIncomeGroups("其中16.66万元以上");
 
@@ -153,13 +151,13 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
 
             incomeStaticsEntities.add(incomeStaticsEntitySubHigh);
         } else {
-            incomeStaticsEntitySubLow = IncomeInfo(10, (float) 16.66);
+            incomeStaticsEntitySubLow = IncomeInfo(10, (float) 16.66,startDate,endDate);
             incomeStaticsEntitySubLow.setIncomeGroups("10万元（不含）—20万元");
             incomeStaticsEntitySubLow.setSubIncomeGroups("其中16.66万元以下");
 
 
             incomeStaticsEntities.add(incomeStaticsEntitySubLow);
-            incomeStaticsEntitySubHigh = IncomeInfo((float) 16.66, 20);
+            incomeStaticsEntitySubHigh = IncomeInfo((float) 16.66, 20,startDate,endDate);
             incomeStaticsEntitySubHigh.setIncomeGroups("10万元（不含）—20万元");
             incomeStaticsEntitySubHigh.setSubIncomeGroups("其中16.66万元以上");
 
@@ -167,31 +165,31 @@ public class IncomeServiceImpl extends ServiceImpl<IncomeDao, IncomeEntity> impl
         }
 
         if (roleIdList.size() != 0) {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(20, 50, Math.toIntExact(roleIdList.get(0)));
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(20, 50, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("20万元（不含）——50万元");
             incomeStaticsEntities.add(incomeStaticsEntity);
         } else {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(20, 50);
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(20, 50,startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("20万元（不含）——50万元");
             incomeStaticsEntities.add(incomeStaticsEntity);
         }
 
         if (roleIdList.size() != 0) {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(50, 60, Math.toIntExact(roleIdList.get(0)));
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(50, 60, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("50万元（不含）——60万元");
             incomeStaticsEntities.add(incomeStaticsEntity);
         } else {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(50, 60);
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(50, 60,startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("50万元（不含）——60万元");
             incomeStaticsEntities.add(incomeStaticsEntity);
         }
 
         if (roleIdList.size() != 0) {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(60, Float.MAX_VALUE, Math.toIntExact(roleIdList.get(0)));
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfoByRole(60, Float.MAX_VALUE, Math.toIntExact(roleIdList.get(0)),startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("60万元（不含）以上");
             incomeStaticsEntities.add(incomeStaticsEntity);
         } else {
-            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(60, Float.MAX_VALUE);
+            IncomeStaticsEntity incomeStaticsEntity = IncomeInfo(60, Float.MAX_VALUE,startDate,endDate);
             incomeStaticsEntity.setIncomeGroups("60万元（不含）以上");
             incomeStaticsEntities.add(incomeStaticsEntity);
         }
